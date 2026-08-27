@@ -22,7 +22,7 @@ class Student:
 
 
 # Testing
-s = Student("Rahul", 85)
+s = Student("jadeja", 95)
 
 print("Name:", s.get_name())
 print("Marks:", s.get_marks())
