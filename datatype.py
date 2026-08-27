@@ -2,7 +2,7 @@ a = 37
 b = 5.1
 c = 8 + 5j
 d  = True
-e = "Nishtha"
+e = "jadeja"
 
 print("Integer:", a, type(a))
 print("Float:", b, type(b))
