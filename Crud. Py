@@ -1,0 +1,123 @@
+import mysql.connector
+from mysql.connector import Error
+class CRUD:
+ def __init__(self, host, user, password, database, table, use_pure):
+ try:
+ self.database = database
+ self.conn = mysql.connector.connect(
+ host = host,
+ user = user,
+ password = password,
+ use_pure = True
+ )
+ if self.conn.is_connected():
+ #print("Connected to mysql")
+ self.mycursor = self.conn.cursor()
+ self.createDB()
+ self.conn.database = self.database
+ self.table = table
+ self.createTABLE()
+ 
+ except Error as e:
+ print(f"Error: {e}")
+ def createDB(self):
+ try:
+ self.mycursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
+ #print("Database created")
+ except Error as e:
+ print(f"Error: {e}")
+ def createTABLE(self):
+ try:
+ sql = f"""
+ CREATE TABLE IF NOT EXISTS {self.table}(
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ name VARCHAR(100),
+ age INT(10)
+ )
+ """
+ self.mycursor.execute(sql)
+ #print("Table created")
+ except Error as e:
+ print(f"Error: {e}")
+ def insertDATA(self, name, age):
+ try:
+ sql = (f"INSERT INTO {self.table}(name,age)VALUES(%s,%s)")
+ val = (name,age)
+ self.mycursor.execute(sql,val)
+ self.conn.commit()
+ print(f"{self.mycursor.rowcount} rows inserted...")
+ except Error as e:
+ print(f"Error: {e}")
+ def showDATA(self):
+ try:
+ sql = (f"SELECT * FROM {self.table}")
+ self.mycursor.execute(sql)
+ rows = self.mycursor.fetchall()
+ for row in rows:
+ print(row)
+ except Error as e:
+ print(f"Error: {e}")
+ def updateDATA(self,eid,name,age):
+ try:
+ self.mycursor.execute(f"SELECT * FROM {self.table} WHERE id = %s", (eid,))
+ row = self.mycursor.fetchone()
+ 
+ if not row:
+ print("Record not found.")
+ return
+ updated = False
+ if name and row[1] != name:
+ sql = f"UPDATE {self.table} SET name = %s WHERE id = %s"
+ self.mycursor.execute(sql, (name, eid))
+ updated = True
+ if age is not None and row[2] != age:
+sql = f"UPDATE {self.table} SET age = %s WHERE id = %s"
+ self.mycursor.execute(sql, (age, eid))
+ updated = True
+ if updated:
+ self.conn.commit()
+ print(f"{self.mycursor.rowcount} row(s) updated.")
+ else:
+ print("No changes detected.")
+ except Error as e:
+ print(f"Error: {e}")
+ def deleteDATA(self,eid):
+ try:
+ sql = f"DELETE FROM {self.table} WHERE id=%s"
+ self.mycursor.execute(sql, (eid,))
+ self.conn.commit()
+ print(f"{self.mycursor.rowcount} row(s) deleted.")
+ except Error as e:
+ print(f"Error: {e}")
+ 
+ 
+if __name__ == '__main__':
+ host = "localhost"
+ user = "root"
+ password = ""
+ use_pure = True
+ #Database and Table
+ print("Enter Database and Table name to create")
+ database = input("Enter Database Name: ")
+ table = input("Enter Table Name: ")
+ #create Database & Table
+ db = CRUD(host, user, password, database, table, use_pure)
+ 
+ #insert data
+ print("Insert Data\n")
+ name = input("Enter name: ")
+ age = int(input("Enter age: "))
+ db.insertDATA(name,age)
+ #show data
+ print("\nAll Data\n")
+ db.showDATA()
+ #update data
+ print("\nUpdate Data\n")
+ eid = int(input("Enter id to update Data: "))
+ name = input("Update name: ")
+ age = int(input("Update age: "))
+ db.updateDATA(eid,name,age)
+ #delete data
+ print("\nDelete Data\n")
+ eid = int(input("Enter id to delete Data: "))
+ db.deleteDATA(eid)
